@@ -88,16 +88,25 @@ public class RackRowService {
 
     private RackRowResponse mapToResponse(RackRow entity) {
 
+        List<RackResponse> rackResponses = entity.getRacks() == null
+                ? List.of()
+                : entity.getRacks()
+                .stream()
+                .map(rack -> RackResponse.builder()
+                        .id(rack.getId())
+                        .rackNumber(rack.getRackNumber())
+                        .build())
+                .toList();
+
         return RackRowResponse.builder()
                 .id(entity.getId())
                 .rowName(entity.getRowName())
-                .dataCenterId(entity.getDataCenter().getId())
-                .racks(entity.getRacks().stream()
-                        .map(rack -> RackResponse.builder()
-                                .id(rack.getId())
-                                .rackNumber(rack.getRackNumber())
-                                .build())
-                        .toList())
+                .dataCenterId(
+                        entity.getDataCenter() != null
+                                ? entity.getDataCenter().getId()
+                                : null
+                )
+                .racks(rackResponses)
                 .createdAt(entity.getCreatedAt())
                 .updatedAt(entity.getUpdatedAt())
                 .createdBy(entity.getCreatedBy())

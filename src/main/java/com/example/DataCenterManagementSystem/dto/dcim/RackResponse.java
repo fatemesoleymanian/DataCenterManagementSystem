@@ -15,7 +15,6 @@ public class RackResponse {
     private Long rackRowId;
     private int maxUnits;
     private List<Long> unitIds;
-    private List<Long> equipmentIds;
 
 
     private LocalDateTime createdAt;

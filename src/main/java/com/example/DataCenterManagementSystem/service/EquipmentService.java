@@ -7,15 +7,16 @@ import com.example.DataCenterManagementSystem.entity.dcim.Equipment;
 import com.example.DataCenterManagementSystem.entity.dcim.Port;
 import com.example.DataCenterManagementSystem.entity.dcim.Rack;
 import com.example.DataCenterManagementSystem.entity.dcim.RackUnit;
+import com.example.DataCenterManagementSystem.exception.DynamicTextException;
 import com.example.DataCenterManagementSystem.exception.NotFoundException;
 import com.example.DataCenterManagementSystem.exception.UnitOccupiedException;
 import com.example.DataCenterManagementSystem.repository.EquipmentRepository;
 import com.example.DataCenterManagementSystem.repository.RackRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.Hibernate;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
-
 import java.util.List;
 
 @Service
@@ -43,7 +44,7 @@ public class EquipmentService {
         List<RackUnit> targetUnits = rack.allocateUnits(request.startUnit(), request.unitSize());
 
         if (targetUnits.size() != size) {
-            throw new IllegalStateException("Units not initialized properly");
+            throw new DynamicTextException("Units not initialized properly");
         }
 
         for (RackUnit unit : targetUnits) {
@@ -84,7 +85,10 @@ public class EquipmentService {
     public EquipmentResponse getEquipmentById(Long id) {
         // Use repository with JOIN FETCH to avoid lazy issues
         return equipmentRepository.findByIdWithDetails(id) // Implement in repo: JOIN FETCH occupiedUnits, ports, rack
-                .map(this::mapToResponse)
+                .map(equipment -> {
+                    Hibernate.initialize(equipment.getOccupiedUnits());  // force load lazy
+                    return mapToResponse(equipment);
+                })
                 .orElseThrow(() -> new NotFoundException("Equipment not found with id: " + id));
     }
 
@@ -92,7 +96,10 @@ public class EquipmentService {
     public List<EquipmentResponse> getAllEquipments() {
         return equipmentRepository.findAllWithDetails()
                 .stream()
-                .map(this::mapToResponse)
+                .map(equipment -> {
+                    Hibernate.initialize(equipment.getOccupiedUnits());  // force load lazy
+                    return mapToResponse(equipment);
+                })
                 .toList();
     }
 
@@ -107,16 +114,30 @@ public class EquipmentService {
         equipmentRepository.delete(equipment);
     }
 
-    // Mapper method (safe inside transaction)
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPPORT')")
+    @Transactional
+    public List<EquipmentResponse> getEquipmentsByRackId(Long rackId) {
+        return equipmentRepository.findByRackId(rackId)
+                .stream()
+                .map(this::mapToResponse)
+                .toList();
+    }
+
+    @Transactional
+    public List<Long> getPortIds(Long equipmentId) {
+        Equipment equipment = equipmentRepository.findByIdWithPorts(equipmentId)
+                .orElseThrow(() -> new NotFoundException("Equipment not found with id: " + equipmentId));
+
+        return equipment.getPorts().stream()
+                .map(Port::getId)
+                .toList();
+    }
+
     private EquipmentResponse mapToResponse(Equipment entity) {
 
         Long rackId = null;
-
         if (!entity.getOccupiedUnits().isEmpty()) {
-            rackId = entity.getOccupiedUnits()
-                    .get(0)
-                    .getRack()
-                    .getId();
+            rackId = entity.getOccupiedUnits().get(0).getRack().getId();  // بدون getRack() entity، مستقیم
         }
 
         return new EquipmentResponse(

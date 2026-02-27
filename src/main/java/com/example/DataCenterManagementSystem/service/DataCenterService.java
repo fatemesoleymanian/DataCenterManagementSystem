@@ -88,16 +88,25 @@ public class DataCenterService {
 
     private DataCenterResponse mapToResponse(DataCenter entity) {
 
+        List<RackRowResponse> rows = entity.getRows() == null
+                ? List.of()
+                : entity.getRows()
+                .stream()
+                .map(row -> RackRowResponse.builder()
+                        .id(row.getId())
+                        .rowName(row.getRowName())
+                        .build())
+                .toList();
+
         return DataCenterResponse.builder()
                 .id(entity.getId())
                 .name(entity.getName())
-                .locationId(entity.getLocation().getId())
-                .rows(entity.getRows().stream()
-                        .map(row -> RackRowResponse.builder()
-                                .id(row.getId())
-                                .rowName(row.getRowName())
-                                .build())
-                        .toList())
+                .locationId(
+                        entity.getLocation() != null
+                                ? entity.getLocation().getId()
+                                : null
+                )
+                .rows(rows)
                 .createdAt(entity.getCreatedAt())
                 .updatedAt(entity.getUpdatedAt())
                 .createdBy(entity.getCreatedBy())

@@ -11,7 +11,9 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -85,15 +87,18 @@ public class LocationService {
 
     private LocationResponse mapToResponse(Location entity) {
 
+        List<Long> childrenIds = Optional.ofNullable(entity.getChildren())
+                .orElse(Collections.emptyList())
+                .stream()
+                .map(Location::getId)
+                .toList();
+
         return new LocationResponse(
                 entity.getId(),
                 entity.getName(),
                 entity.getLevel(),
                 entity.getParent() != null ? entity.getParent().getId() : null,
-                entity.getChildren()
-                        .stream()
-                        .map(Location::getId)
-                        .toList(),
+                childrenIds,
                 entity.getCreatedAt(),
                 entity.getUpdatedAt(),
                 entity.getCreatedBy(),

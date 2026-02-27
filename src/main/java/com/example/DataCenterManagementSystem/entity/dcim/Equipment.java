@@ -3,6 +3,7 @@ package com.example.DataCenterManagementSystem.entity.dcim;
 import com.example.DataCenterManagementSystem.entity.BaseEntity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Positive;
+import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
@@ -28,6 +29,7 @@ public class Equipment extends BaseEntity {
     private int unitSize;
 
     @OneToMany(mappedBy = "occupiedBy", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
     private List<RackUnit> occupiedUnits = new ArrayList<>();
 
 //    @ManyToOne(fetch = FetchType.LAZY)
@@ -35,10 +37,17 @@ public class Equipment extends BaseEntity {
 //    private Rack rack;
 
     @OneToMany(mappedBy = "equipment", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
     private List<Port> ports = new ArrayList<>();
 
     public Rack getRack() {
         if (occupiedUnits.isEmpty()) return null;
         return occupiedUnits.get(0).getRack();
+    }
+    public List<Port> getPorts() {
+        if (ports == null) {
+            ports = new ArrayList<>();
+        }
+        return ports;
     }
 }

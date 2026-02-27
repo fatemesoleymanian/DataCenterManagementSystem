@@ -10,24 +10,26 @@ import java.util.List;
 import java.util.Optional;
 
 public interface EquipmentRepository extends JpaRepository<Equipment,Long> {
-    @EntityGraph(attributePaths = {
-            "occupiedUnits",
-            "occupiedUnits.rack",
-            "ports"
-    })
-    @Query("select e from Equipment e where e.id = :id")
+    // EquipmentRepository.java
+
+    @EntityGraph(attributePaths = {"ports", "occupiedUnits"})
+    @Query("SELECT e FROM Equipment e WHERE e.id = :id")
     Optional<Equipment> findByIdWithDetails(@Param("id") Long id);
 
 
-    @EntityGraph(attributePaths = {
-            "occupiedUnits",
-            "occupiedUnits.rack",
-            "ports"
-    })
+    @EntityGraph(attributePaths = {"ports"})
     @Query("select e from Equipment e")
     List<Equipment> findAllWithDetails();
 
-    @EntityGraph(attributePaths = {"occupiedUnits", "occupiedUnits.rack", "ports"})
-    @Query("SELECT DISTINCT e FROM Equipment e JOIN e.occupiedUnits u WHERE u.rack.id = :rackId")
+    @Query("""
+    SELECT DISTINCT e 
+    FROM Equipment e 
+    JOIN e.occupiedUnits ru 
+    WHERE ru.rack.id = :rackId
+    """)
     List<Equipment> findByRackId(@Param("rackId") Long rackId);
+
+    @EntityGraph(attributePaths = {"ports"})
+    @Query("SELECT e FROM Equipment e WHERE e.id = :id")
+    Optional<Equipment> findByIdWithPorts(@Param("id") Long id);
 }

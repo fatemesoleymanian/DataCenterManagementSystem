@@ -3,12 +3,10 @@ package com.example.DataCenterManagementSystem.service;
 import com.example.DataCenterManagementSystem.config.logging.LogActivity;
 import com.example.DataCenterManagementSystem.dto.dcim.CreateRackRequest;
 import com.example.DataCenterManagementSystem.dto.dcim.RackResponse;
-import com.example.DataCenterManagementSystem.entity.dcim.Equipment;
 import com.example.DataCenterManagementSystem.entity.dcim.Rack;
 import com.example.DataCenterManagementSystem.entity.dcim.RackRow;
 import com.example.DataCenterManagementSystem.entity.dcim.RackUnit;
 import com.example.DataCenterManagementSystem.exception.NotFoundException;
-import com.example.DataCenterManagementSystem.repository.EquipmentRepository;
 import com.example.DataCenterManagementSystem.repository.RackRepository;
 import com.example.DataCenterManagementSystem.repository.RackRowRepository;
 import lombok.RequiredArgsConstructor;
@@ -24,7 +22,6 @@ public class RackService {
 
     private final RackRepository rackRepository;
     private final RackRowRepository rackRowRepository;
-    private final EquipmentRepository equipmentRepository;
 
     @Transactional
     @PreAuthorize("hasRole('ADMIN')")
@@ -77,10 +74,6 @@ public class RackService {
 
     private RackResponse mapToResponse(Rack entity) {
 
-        List<Long> equipmentIds = equipmentRepository.findByRackId(entity.getId())
-                .stream()
-                .map(Equipment::getId)
-                .toList();
 
         return RackResponse.builder()
                 .id(entity.getId())
@@ -90,7 +83,6 @@ public class RackService {
                 .unitIds(entity.getUnits().stream()
                         .map(RackUnit::getId)
                         .toList())
-                .equipmentIds(equipmentIds)
                 .createdAt(entity.getCreatedAt())
                 .updatedAt(entity.getUpdatedAt())
                 .createdBy(entity.getCreatedBy())

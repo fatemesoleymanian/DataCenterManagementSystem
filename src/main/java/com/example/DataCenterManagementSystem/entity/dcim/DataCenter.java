@@ -2,6 +2,7 @@ package com.example.DataCenterManagementSystem.entity.dcim;
 
 import com.example.DataCenterManagementSystem.entity.BaseEntity;
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
@@ -23,5 +24,6 @@ public class DataCenter extends BaseEntity {
     private Location location;
 
     @OneToMany(mappedBy = "dataCenter", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
     private List<RackRow> rows = new ArrayList<>();
 }

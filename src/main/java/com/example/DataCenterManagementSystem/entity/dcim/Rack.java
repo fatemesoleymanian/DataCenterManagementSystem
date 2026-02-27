@@ -3,6 +3,7 @@ package com.example.DataCenterManagementSystem.entity.dcim;
 import com.example.DataCenterManagementSystem.entity.BaseEntity;
 import com.example.DataCenterManagementSystem.exception.UnitOccupiedException;
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
@@ -27,6 +28,7 @@ public class Rack extends BaseEntity {
 
     @OneToMany(mappedBy = "rack", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("unitNumber DESC") // Sort from top to bottom if needed
+    @Builder.Default
     private List<RackUnit> units = new ArrayList<>();
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -38,6 +40,11 @@ public class Rack extends BaseEntity {
 
     @PrePersist
     private void initializeUnits() {
+
+        if (units == null) {
+            units = new ArrayList<>();
+        }
+
         if (units.isEmpty()) {
             for (int i = 1; i <= MAX_UNITS; i++) {
                 RackUnit unit = RackUnit.builder()

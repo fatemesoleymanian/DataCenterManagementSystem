@@ -5,6 +5,7 @@ import com.example.DataCenterManagementSystem.entity.security.User;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
@@ -33,5 +34,6 @@ public class Ticket extends BaseEntity {
     private User creator;
 
     @OneToMany(mappedBy = "ticket", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
     private List<TicketMessage> messages = new ArrayList<>();
 }
